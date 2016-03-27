@@ -8,5 +8,7 @@ int main()
 {
     printf("hello, world!\n");
     
+    testFunction();
+    
     return 0;
 }

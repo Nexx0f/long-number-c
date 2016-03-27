@@ -1,1 +1,3 @@
 build/
+*.gcov
+gcov-res.txt
