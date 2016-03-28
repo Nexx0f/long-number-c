@@ -11,8 +11,8 @@ font_default=\e[37m
 all: dirs run_tests
 
 run_tests: dirs build/unit_tests.elf
-	@echo -e "$(font_light_green)Running tests...$(font_default)"
-	@./build/unit_tests.elf
+	@echo -e "$(font_light_green)Running tests (valgrind)...$(font_default)"
+	valgrind --leak-check=full ./build/unit_tests.elf
 	@echo -e "$(font_light_green)Running gcov...$(font_default)"
 	gcov -b ./build/long_number.o | tee gcov-res.txt
 	@echo -en '$(font_light_green)'
