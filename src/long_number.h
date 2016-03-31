@@ -30,12 +30,14 @@ typedef struct
     char isNegative;
 } number;
 
-char is_valid_number(number num);
+char num_is_valid(number num);
 
-number create_from_string(const char* string);
+number num_parse(const char* string);
 
-number read_from_file(FILE* input);
-void write_to_file(FILE* output, number num);
+number num_read(FILE* input);
+void num_write(FILE* output, number num);
+
+void num_free(number num);
 
 // sign(a-b)
 int num_compare(number a, number b);
