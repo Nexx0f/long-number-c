@@ -38,7 +38,7 @@ number num_parse(const char* string);
 number num_read(FILE* input);
 void num_write(FILE* output, number num);
 
-void num_free(number num);
+number num_free(number num);
 
 // sign(a-b)
 int num_compare(number a, number b);

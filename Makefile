@@ -12,10 +12,12 @@ all: dirs run_tests
 
 run_tests: dirs build/unit_tests.elf
 	@echo -e "$(font_light_green)Running tests (valgrind)...$(font_default)"
-	valgrind --leak-check=full ./build/unit_tests.elf
+	@valgrind --leak-check=full ./build/unit_tests.elf 2>valgrind-res.txt
 	@echo -e "$(font_light_green)Running gcov...$(font_default)"
 	gcov -b ./build/long_number.o | tee gcov-res.txt
 	@echo -en '$(font_light_green)'
+	@grep -o 'in use at exit:.*' valgrind-res.txt
+	@grep -o 'ERROR SUMMARY:.*' valgrind-res.txt
 	@grep 'Lines executed:' gcov-res.txt
 	@echo -en '$(font_default)'
 

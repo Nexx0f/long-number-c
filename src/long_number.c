@@ -44,13 +44,19 @@ number num_parse(const char* str)
         str++;
     }
     
-    num.n = n - 1;
-    if (num.n == 0)
-        num.n++;
+    num.n = n;
     
     num.digits = calloc(num.n, sizeof(num.digits[0]));
     for (int i = 0; i < n; i++)
         num.digits[i] = str[n - i - 1] - '0';
     
     num_return(ERROR_OK, num);
+}
+
+number num_free(number num)
+{
+    if (num.digits)
+        free(num.digits);
+    
+    num_return(ERROR_OK, get_null_num());
 }
