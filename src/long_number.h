@@ -9,16 +9,16 @@ typedef enum
     ERROR_OK = 0,
     
     // failed to parse number
-    ERROR_INVALID_NUMBER_FORMAT,
+    ERROR_INVALID_FORMAT,
     
     // division by zero
     ERROR_DIVISION_BY_ZERO,
     
     // file operation failure
     ERROR_IO
-} error_t;
+} num_error_t;
 
-extern error_t long_number_errno;
+extern num_error_t long_number_errno;
 
 // n >= 1 always
 // negative zero allowed
@@ -27,10 +27,11 @@ typedef struct
 {
     int* digits;
     int n;
-    char isNegative;
+    char is_negative;
 } number;
 
-char num_is_valid(number num);
+number get_null_num();
+char num_is_null(number num);
 
 number num_parse(const char* string);
 
