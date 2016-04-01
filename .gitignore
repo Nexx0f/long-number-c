@@ -2,3 +2,4 @@ build/
 *.gcov
 gcov-res.txt
 valgrind-res.txt
+tmp.txt

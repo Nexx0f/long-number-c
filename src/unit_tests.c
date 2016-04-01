@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <stdarg.h>
+#include <string.h>
 
 int TAB_LEVEL = 0;
 
@@ -91,6 +93,19 @@ void test_utility_functions()
            a.digits[1] == 0 &&
            a.digits[2] == 7);
     
+    a = num_free(a);
+    num_free(a);
+    
+    // explicit +
+    a = num_parse("+701");
+    check_ok();
+    verify(a.n == 3 &&
+           !a.is_negative &&
+           a.digits[0] == 1 &&
+           a.digits[1] == 0 &&
+           a.digits[2] == 7);
+    
+    a = num_free(a);
     num_free(a);
     
     // invalid numbers
@@ -102,6 +117,62 @@ void test_utility_functions()
     verify(long_number_errno == ERROR_INVALID_FORMAT);
     a = num_parse("100a100");
     verify(long_number_errno == ERROR_INVALID_FORMAT);
+    a = num_parse("a100");
+    verify(long_number_errno == ERROR_INVALID_FORMAT);
+    
+    end_test_group();
+}
+
+char check_num_read(const char* str, num_error_t exp_error, char exp_negative, unsigned exp_n, const char* exp_digits)
+{
+    FILE* test_in = fopen("tmp.txt", "w");
+    assert(test_in);
+    fprintf(test_in, "%s", str);
+    fclose(test_in);
+    
+    test_in = fopen("tmp.txt", "r");
+    
+    number num = num_read(test_in);
+    if (exp_error != long_number_errno)
+    {
+        num_free(num);
+        return 0;
+    }
+    
+    if (long_number_errno != ERROR_OK)
+        return 1;
+    
+    if (num.n != exp_n || num.is_negative != exp_negative)
+    {
+        num_free(num);
+        return 0;
+    }
+    
+    for (unsigned i = 0; i < num.n; i++)
+        if (num.digits[i] != (unsigned)(exp_digits[exp_n - i - 1] - '0'))
+        {
+            num_free(num);
+            return 0;
+        }
+        
+    num_free(num);
+    
+    return 1;
+}
+
+void test_read()
+{
+    begin_test_group("num_read");
+    
+    verify(check_num_read("+123", ERROR_OK, 0, 3, "123"));
+    verify(check_num_read("-123", ERROR_OK, 1, 3, "123"));
+    verify(check_num_read("+0asdf100", ERROR_OK, 0, 1, "0"));
+    verify(check_num_read("+asdf", ERROR_INVALID_FORMAT, 0, 1, 0));
+    verify(check_num_read("a100", ERROR_INVALID_FORMAT, 0, 1, 0));
+    verify(check_num_read("", ERROR_INVALID_FORMAT, 0, 1, 0));
+    
+    const char* longNum = "1005001005001000500";
+    verify(check_num_read(longNum, ERROR_OK, 0, strlen(longNum), longNum));
     
     end_test_group();
 }
@@ -109,6 +180,7 @@ void test_utility_functions()
 void run_unit_tests()
 {
     test_utility_functions();
+    test_read();
 }
 
 int main()

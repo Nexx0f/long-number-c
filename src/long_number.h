@@ -25,8 +25,8 @@ extern num_error_t long_number_errno;
 // digits can be zero -> null number
 typedef struct
 {
-    int* digits;
-    int n;
+    unsigned* digits;
+    unsigned n;
     char is_negative;
 } number;
 

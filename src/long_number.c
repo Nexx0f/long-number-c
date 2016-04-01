@@ -35,7 +35,7 @@ number num_parse(const char* str)
     if (n == 0 || (!isdigit(str[0]) && n == 1))
         num_return(ERROR_INVALID_FORMAT, get_null_num());
     
-    number num;
+    number num = get_null_num();
     
     if (str[0] == '+' || str[0] == '-')
     {
@@ -59,4 +59,54 @@ number num_free(number num)
         free(num.digits);
     
     num_return(ERROR_OK, get_null_num());
+}
+
+number num_read(FILE* input)
+{   
+    number num = get_null_num();
+    
+    int front = fgetc(input);
+    if (front == '+' || front == '-')
+    {
+        num.is_negative = front == '-';
+        front = fgetc(input);
+    }
+    
+    if (!isdigit(front))
+        num_return(ERROR_INVALID_FORMAT, get_null_num());
+    
+    unsigned buffer_size = 10;
+    char* buffer = calloc(buffer_size, sizeof(char));
+    unsigned buffer_pos = 0;
+    
+    do
+    {
+        if (buffer_pos == buffer_size)
+        {
+            buffer_size *= 2;
+            buffer = realloc(buffer, buffer_size);
+        }
+        
+        buffer[buffer_pos++] = front;
+        
+        front = fgetc(input);
+    }
+    while (front != EOF && isdigit(front));
+    
+    if (front != EOF)
+        ungetc(front, input);
+    
+    num.n = buffer_pos;
+    num.digits = calloc(buffer_pos, sizeof(num.digits[0]));
+    for (unsigned i = 0; i < buffer_pos; i++)
+        num.digits[buffer_pos - i - 1] = buffer[i] - '0';
+    
+    free(buffer);
+    
+    num_return(ERROR_OK, num);
+}
+
+void num_write(FILE* output, number num)
+{
+    
 }
