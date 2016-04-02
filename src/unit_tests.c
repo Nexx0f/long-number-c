@@ -122,6 +122,35 @@ void test_utility_functions()
     a = num_parse(0);
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     
+    // num_is_zero
+    a = num_parse("0");
+    check_ok();
+    verify(num_is_zero(a));
+    num_free(a);
+    
+    a = num_parse("-0");
+    check_ok();
+    verify(num_is_zero(a));
+    num_free(a);
+    
+    a = num_parse("+000");
+    check_ok();
+    verify(num_is_zero(a));
+    num_free(a);
+    
+    a = num_parse("-1");
+    check_ok();
+    verify(!num_is_zero(a));
+    num_free(a);
+    
+    a = num_parse("-10");
+    check_ok();
+    verify(!num_is_zero(a));
+    num_free(a);
+    
+    num_is_zero(get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
     end_test_group();
 }
 
@@ -257,11 +286,62 @@ void test_write()
     end_test_group();
 }
 
+char check_num_compare(const char* a, const char* b, int expected)
+{
+    number num_a = num_parse(a);
+    number num_b = num_parse(b);
+    
+    int result = num_compare(num_a, num_b);
+    assert(long_number_errno == ERROR_OK);
+    
+    num_free(num_a);
+    num_free(num_b);
+    
+    return result == expected;
+}
+
+void test_cmp()
+{
+    begin_test_group("num_compare");
+    
+    number a = num_parse("1");
+    
+    num_compare(a, get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    num_compare(get_null_num(), a);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    num_free(a);
+    
+    verify(check_num_compare("1", "1", 0));
+    verify(check_num_compare("1", "0", 1));
+    verify(check_num_compare("-1", "0", -1));
+    verify(check_num_compare("0", "1", -1));
+    verify(check_num_compare("0", "-1", 1));
+    verify(check_num_compare("0", "0", 0));
+    verify(check_num_compare("100", "10", 1));
+    verify(check_num_compare("10", "100", -1));
+    verify(check_num_compare("-100", "-10", -1));
+    verify(check_num_compare("-10", "-100", 1));
+    verify(check_num_compare("12345", "12345", 0));
+    verify(check_num_compare("12345", "12346", -1));
+    verify(check_num_compare("12345", "12344", 1));
+    verify(check_num_compare("1", "2", -1));
+    verify(check_num_compare("1", "-2", 1));
+    verify(check_num_compare("-1", "2", -1));
+    verify(check_num_compare("-1", "-2", 1));
+    verify(check_num_compare("0010", "000010", 0));
+    
+    end_test_group();
+}
+
 void run_unit_tests()
 {
     test_utility_functions();
     test_read();
     test_write();
+    test_cmp();
 }
 
 int main()

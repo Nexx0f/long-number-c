@@ -40,6 +40,8 @@ void num_write(FILE* output, number num);
 
 number num_free(number num);
 
+char num_is_zero(number x);
+
 // sign(a-b)
 int num_compare(number a, number b);
 

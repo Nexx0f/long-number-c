@@ -135,3 +135,56 @@ void num_write(FILE* out, number num)
     
     num_return(ERROR_OK, VOID);
 }
+
+char num_is_zero(number x)
+{
+    if (num_is_null(x))
+        num_return(ERROR_INVALID_ARGUMENT, 0);
+    
+    unsigned nonzero = x.n - 1;
+    while (nonzero > 0 && x.digits[nonzero] == 0)
+        nonzero--;
+    
+    num_return(ERROR_OK, x.digits[nonzero] == 0);
+}
+
+int num_compare(number a, number b)
+{
+    if (num_is_null(a) || num_is_null(b))
+        num_return(ERROR_INVALID_ARGUMENT, 0);
+    
+    unsigned aNonzero = a.n - 1, bNonzero = b.n - 1;
+    
+    while (aNonzero > 0 && a.digits[aNonzero] == 0) aNonzero--;
+    while (bNonzero > 0 && b.digits[bNonzero] == 0) bNonzero--;
+        
+    char aZero = aNonzero == 0 && a.digits[aNonzero] == 0;
+    char bZero = bNonzero == 0 && b.digits[bNonzero] == 0;
+    
+    long_number_errno = ERROR_OK;
+        
+    if (aZero && bZero) return 0;
+    
+    if (aZero) return b.is_negative ? 1 : -1;
+    if (bZero) return a.is_negative ? -1 : 1;
+    
+    if (a.is_negative != b.is_negative) return a.is_negative ? -1 : 1;
+    
+    int no_sign_result = 0;
+    
+    if (aNonzero == bNonzero)
+    {
+        for (int i = aNonzero; i >= 0; i--)
+            if (a.digits[i] != b.digits[i])
+            {
+                no_sign_result = a.digits[i] > b.digits[i] ? 1 : -1;
+                break;
+            }
+    }
+    else
+    {
+        no_sign_result = aNonzero > bNonzero ? 1 : -1;
+    }
+    
+    return no_sign_result * (a.is_negative ? -1 : 1);
+}
