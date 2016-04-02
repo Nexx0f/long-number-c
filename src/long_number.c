@@ -106,7 +106,26 @@ number num_read(FILE* input)
     num_return(ERROR_OK, num);
 }
 
-void num_write(FILE* output, number num)
+void num_write(FILE* out, number num)
 {
+    if (!out || num_is_null(num))
+        num_return(ERROR_INVALID_ARGUMENT, VOID);
     
+    int nonzero = num.n - 1;
+    while (nonzero > 0 && !num.digits[nonzero])
+        nonzero--;
+    
+    if (nonzero == 0 && num.digits[nonzero] == 0)
+    {
+        fputc('0', out);
+        num_return(ERROR_OK, VOID);
+    }
+    
+    if (num.is_negative)
+        fputc('-', out);
+    
+    for (int i = nonzero; i >= 0; i--)
+        fputc('0' + num.digits[i], out);
+    
+    num_return(ERROR_OK, VOID);
 }

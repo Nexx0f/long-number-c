@@ -14,8 +14,8 @@ typedef enum
     // division by zero
     ERROR_DIVISION_BY_ZERO,
     
-    // file operation failure
-    ERROR_IO
+    // null pointer / etc.
+    ERROR_INVALID_ARGUMENT
 } num_error_t;
 
 extern num_error_t long_number_errno;

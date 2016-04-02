@@ -177,10 +177,84 @@ void test_read()
     end_test_group();
 }
 
+char check_num_write(const char* read_string, num_error_t expected_error, const char* expected_string)
+{
+    FILE* test_in = fopen("tmp.txt", "w");
+    assert(test_in);
+    fprintf(test_in, "%s", read_string);
+    fclose(test_in);
+    
+    test_in = fopen("tmp.txt", "r");
+    assert(test_in);
+    number num = num_read(test_in);
+    fclose(test_in);
+    
+    if (long_number_errno != ERROR_OK)
+    {
+        num_free(num);
+        return 0;
+    }
+    
+    test_in = fopen("tmp.txt", "w");
+    assert(test_in);
+    num_write(test_in, num);
+    fclose(test_in);
+    
+    if (long_number_errno != expected_error)
+    {
+        num_free(num);
+        return 0;
+    }
+    
+    if (expected_error != ERROR_OK)
+    {
+        num_free(num);
+        return 1;
+    }
+    
+    test_in = fopen("tmp.txt", "r");
+    assert(test_in);
+    char* written_string = 0;
+    fscanf(test_in, "%ms", &written_string);
+    fclose(test_in);
+    
+    assert(written_string);
+    char ok = !strcmp(written_string, expected_string);
+    
+    free(written_string);
+    num_free(num);
+    
+    return ok;
+}
+
+void test_write()
+{
+    begin_test_group("num_write");
+    
+    verify(check_num_write("123", ERROR_OK, "123"));
+    verify(check_num_write("000123", ERROR_OK, "123"));
+    verify(check_num_write("+0000", ERROR_OK, "0"));
+    verify(check_num_write("-00", ERROR_OK, "0"));
+    verify(check_num_write("-123", ERROR_OK, "-123"));
+    verify(check_num_write("1", ERROR_OK, "1"));
+    verify(check_num_write("-2", ERROR_OK, "-2"));
+    
+    num_write(0, get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    FILE* valid_out = fopen("tmp.txt", "w");
+    num_write(valid_out, get_null_num());
+    fclose(valid_out);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    end_test_group();
+}
+
 void run_unit_tests()
 {
     test_utility_functions();
     test_read();
+    test_write();
 }
 
 int main()
