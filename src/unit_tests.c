@@ -336,12 +336,78 @@ void test_cmp()
     end_test_group();
 }
 
+char check_num_op(const char* a, char op, const char* b, const char* c)
+{
+    number num_a = num_parse(a);
+    assert(long_number_errno == ERROR_OK);
+    
+    number num_b = num_parse(b);
+    assert(long_number_errno == ERROR_OK);
+    
+    number num_c = num_parse(c);
+    assert(long_number_errno == ERROR_OK);
+    
+    number op_res;
+    
+    switch (op)
+    {
+        case '+': op_res = num_add(num_a, num_b); break;
+        case '-': op_res = num_sub(num_a, num_b); break;
+        default: assert(!"invalid op");
+    }
+    
+    char eq = num_compare(num_c, op_res) == 0;
+    
+    print_tabs();
+    printf("result: ");
+    num_write(stdout, op_res);
+    printf("\n");
+    
+    num_free(num_a);
+    num_free(num_b);
+    num_free(num_c);
+    num_free(op_res);
+    
+    return eq;
+}
+
+void test_ops()
+{
+    begin_test_group("arithmetical operations");
+    
+    number a = num_parse("1");
+    
+    num_add(a, get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_sub(a, get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_add(get_null_num(), a);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_sub(get_null_num(), a);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    num_free(a);
+    
+    verify(check_num_op("10", '+', "10", "20"));
+    verify(check_num_op("10", '-', "10", "0"));
+    verify(check_num_op("-10", '+', "-10", "-20"));
+    verify(check_num_op("-10", '+', "20", "10"));
+    verify(check_num_op("-10", '+', "20", "10"));
+    verify(check_num_op("11", '-', "2", "9"));
+    verify(check_num_op("1010", '-', "101", "909"));
+    verify(check_num_op("100000", '-', "1", "99999"));
+    verify(check_num_op("11", '+', "9", "20"));
+    
+    end_test_group();
+}
+
 void run_unit_tests()
 {
     test_utility_functions();
     test_read();
     test_write();
     test_cmp();
+    test_ops();
 }
 
 int main()

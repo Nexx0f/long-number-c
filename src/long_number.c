@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <assert.h>
 #include "long_number.h"
 
 num_error_t long_number_errno = ERROR_OK;
@@ -29,9 +30,9 @@ number num_parse(const char* str)
     if (!str)
         num_return(ERROR_INVALID_ARGUMENT, get_null_num());
     
-    int n = strlen(str);
+    unsigned n = strlen(str);
     
-    for (int i = 0; i < n; i++)
+    for (unsigned i = 0; i < n; i++)
         if (!(isdigit(str[i]) || (i == 0 && (str[i] == '+' || str[i] == '-'))))
             num_return(ERROR_INVALID_FORMAT, get_null_num());
         
@@ -50,7 +51,7 @@ number num_parse(const char* str)
     num.n = n;
     
     num.digits = calloc(num.n, sizeof(num.digits[0]));
-    for (int i = 0; i < n; i++)
+    for (unsigned i = 0; i < n; i++)
         num.digits[i] = str[n - i - 1] - '0';
     
     num_return(ERROR_OK, num);
@@ -188,3 +189,106 @@ int num_compare(number a, number b)
     
     return no_sign_result * (a.is_negative ? -1 : 1);
 }
+
+// utility routine, does not alter error codes
+number shrink_leading_zeros(number a)
+{
+    while (a.n > 0 && a.digits[a.n - 1] == 0)
+        a.n--;
+    
+    a.digits = realloc(a.digits, a.n * sizeof(a.digits[0]));
+    return a;
+}
+
+number num_add_unisign(number a, number b)
+{
+    number res;
+    res.is_negative = a.is_negative;
+    res.n = a.n + b.n + 1;
+    res.digits = calloc(res.n, sizeof(res.digits[0]));
+    
+    int carry = 0;
+    for (unsigned i = 0; i < res.n; i++)
+    {
+        if (i < a.n) carry += a.digits[i];
+        if (i < b.n) carry += b.digits[i];
+        
+        res.digits[i] = carry % 10;
+        carry /= 10;
+    }
+    
+    num_return(ERROR_OK, shrink_leading_zeros(res));
+}
+
+number num_subtract_lower(number a, number b)
+{
+    number res;
+    res.is_negative = 0;
+    res.n = a.n;
+    res.digits = calloc(res.n, sizeof(res.digits[0]));
+    
+    char is_carry = 0;
+    for (unsigned i = 0; i < a.n; i++)
+    {
+        int digit = a.digits[i];
+        
+        if (is_carry && digit > 0)
+        {
+            is_carry = 0;
+            digit--;
+        }
+        
+        if (is_carry)
+            digit += 9;
+        
+        int needSub = i < b.n ? b.digits[i] : 0;
+        
+        if (needSub > digit)
+        {
+            digit += 10;
+            is_carry = 1;
+        }
+        
+        res.digits[i] = digit - needSub;
+    }
+    
+    num_return(ERROR_OK, shrink_leading_zeros(res));
+}
+
+number num_add(number a, number b)
+{
+    if (num_is_null(a) || num_is_null(b))
+        num_return(ERROR_INVALID_ARGUMENT, get_null_num());
+    
+    if (a.is_negative == b.is_negative)
+        return num_add_unisign(a, b);
+
+    if (a.is_negative)
+    {
+        a.is_negative = !a.is_negative;
+        b.is_negative = !b.is_negative;
+        number x = num_add(a, b);
+        x.is_negative = !x.is_negative;
+        return x;
+    }
+    
+    // a >= 0
+    b.is_negative = 0;
+    
+    if (num_compare(a, b) >= 0)
+        return num_subtract_lower(a, b);
+    
+    number res = num_subtract_lower(b, a);
+    res.is_negative = 1;
+    return res;
+}
+
+number num_sub(number a, number b)
+{
+    if (num_is_null(a) || num_is_null(b))
+        num_return(ERROR_INVALID_ARGUMENT, get_null_num());
+    
+    b.is_negative = !b.is_negative;
+    return num_add(a, b);
+}
+
