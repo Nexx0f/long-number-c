@@ -200,11 +200,19 @@ number shrink_leading_zeros(number a)
     return a;
 }
 
+unsigned unsigned_max(unsigned a, unsigned b)
+{
+    if (a > b)
+        return a;
+    else
+        return b;
+}
+
 number num_add_unisign(number a, number b)
 {
     number res;
     res.is_negative = a.is_negative;
-    res.n = a.n + b.n + 1;
+    res.n = unsigned_max(a.n, b.n) + 1;
     res.digits = calloc(res.n, sizeof(res.digits[0]));
     
     int carry = 0;
@@ -291,4 +299,3 @@ number num_sub(number a, number b)
     b.is_negative = !b.is_negative;
     return num_add(a, b);
 }
-
