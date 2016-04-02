@@ -133,6 +133,8 @@ char check_num_read(const char* str, num_error_t exp_error, char exp_negative, u
     test_in = fopen("tmp.txt", "r");
     
     number num = num_read(test_in);
+    fclose(test_in);
+    
     if (exp_error != long_number_errno)
     {
         num_free(num);
