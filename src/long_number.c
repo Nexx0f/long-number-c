@@ -26,6 +26,9 @@ char num_is_null(number num)
 
 number num_parse(const char* str)
 {
+    if (!str)
+        num_return(ERROR_INVALID_ARGUMENT, get_null_num());
+    
     int n = strlen(str);
     
     for (int i = 0; i < n; i++)
@@ -63,6 +66,9 @@ number num_free(number num)
 
 number num_read(FILE* input)
 {   
+    if (!input)
+        num_return(ERROR_INVALID_ARGUMENT, get_null_num());
+    
     number num = get_null_num();
     
     int front = fgetc(input);

@@ -119,6 +119,8 @@ void test_utility_functions()
     verify(long_number_errno == ERROR_INVALID_FORMAT);
     a = num_parse("a100");
     verify(long_number_errno == ERROR_INVALID_FORMAT);
+    a = num_parse(0);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     
     end_test_group();
 }
@@ -175,6 +177,9 @@ void test_read()
     
     const char* longNum = "1005001005001000500";
     verify(check_num_read(longNum, ERROR_OK, 0, strlen(longNum), longNum));
+    
+    num_read(0);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     
     end_test_group();
 }
