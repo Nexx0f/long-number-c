@@ -193,7 +193,7 @@ int num_compare(number a, number b)
 // utility routine, does not alter error codes
 number shrink_leading_zeros(number a)
 {
-    while (a.n > 0 && a.digits[a.n - 1] == 0)
+    while (a.n > 1 && a.digits[a.n - 1] == 0)
         a.n--;
     
     a.digits = realloc(a.digits, a.n * sizeof(a.digits[0]));
@@ -288,7 +288,7 @@ number num_add(number a, number b)
     
     number res = num_subtract_lower(b, a);
     res.is_negative = 1;
-    return res;
+    num_return(ERROR_OK, res);
 }
 
 number num_sub(number a, number b)
@@ -298,4 +298,34 @@ number num_sub(number a, number b)
     
     b.is_negative = !b.is_negative;
     return num_add(a, b);
+}
+
+number num_mul(number a, number b)
+{
+    if (num_is_null(a) || num_is_null(b))
+        num_return(ERROR_INVALID_ARGUMENT, get_null_num());
+    
+    number res;
+    
+    res.is_negative = (a.is_negative ? 1 : 0) ^ (b.is_negative ? 1 : 0);
+    res.n = a.n + b.n + 1;
+    res.digits = calloc(res.n, sizeof(res.digits[0]) * res.n);
+    
+    for (unsigned i = 0; i < a.n; i++)
+    {
+        int carry = 0;
+        
+        for (unsigned j = i; j < res.n; j++)
+        {
+            carry += res.digits[j];
+            
+            if (j - i < b.n)
+                carry += b.digits[j - i] * a.digits[i];
+            
+            res.digits[j] = carry % 10;
+            carry /= 10;
+        }
+    }
+    
+    num_return(ERROR_OK, shrink_leading_zeros(res));
 }

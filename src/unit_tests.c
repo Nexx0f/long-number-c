@@ -353,6 +353,7 @@ char check_num_op(const char* a, char op, const char* b, const char* c)
     {
         case '+': op_res = num_add(num_a, num_b); break;
         case '-': op_res = num_sub(num_a, num_b); break;
+        case '*': op_res = num_mul(num_a, num_b); break;
         default: assert(!"invalid op");
     }
     
@@ -381,9 +382,13 @@ void test_ops()
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     num_sub(a, get_null_num());
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_mul(a, get_null_num());
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     num_add(get_null_num(), a);
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     num_sub(get_null_num(), a);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_mul(get_null_num(), a);
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     
     num_free(a);
@@ -398,6 +403,12 @@ void test_ops()
     verify(check_num_op("100000", '-', "1", "99999"));
     verify(check_num_op("11", '+', "9", "20"));
     
+    verify(check_num_op("9", '*', "9", "81"));
+    verify(check_num_op("-23423", '*', "-234234", "5486462982"));
+    verify(check_num_op("10", '*', "-10", "-100"));
+    verify(check_num_op("10", '*', "-10", "-100"));
+    verify(check_num_op("10", '*', "0", "0"));
+    verify(check_num_op("0", '*', "-10", "0"));
     end_test_group();
 }
 
