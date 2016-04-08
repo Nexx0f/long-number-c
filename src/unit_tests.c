@@ -154,7 +154,8 @@ void test_utility_functions()
     end_test_group();
 }
 
-char check_num_read(const char* str, num_error_t exp_error, char exp_negative, unsigned exp_n, const char* exp_digits)
+char check_num_read(const char* str, num_error_t exp_error,
+                    char exp_negative, unsigned exp_n, const char* exp_digits)
 {
     FILE* test_in = fopen("tmp.txt", "w");
     assert(test_in);
@@ -213,7 +214,8 @@ void test_read()
     end_test_group();
 }
 
-char check_num_write(const char* read_string, num_error_t expected_error, const char* expected_string)
+char check_num_write(const char* read_string,
+                     num_error_t expected_error, const char* expected_string)
 {
     FILE* test_in = fopen("tmp.txt", "w");
     assert(test_in);

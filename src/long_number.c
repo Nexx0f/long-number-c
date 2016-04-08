@@ -378,16 +378,12 @@ void num_div(number a, number b, number* quotient, number* remainder)
     {
         shift(bPower, 1);
         nShifts++;
-        //if (nShifts > 5) abort();
     }
     
-    //printf("bPower "); num_write(stdout, bPower); printf("\n");
     while (nShifts > 0)
     {
         shift(bPower, -1);
         nShifts--;
-        
-        //printf("bPower "); num_write(stdout, bPower); printf("\n");
         
         int digit = 0;
         while (num_compare(r, bPower) >= 0)

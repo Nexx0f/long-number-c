@@ -42,7 +42,7 @@ number num_free(number num);
 
 char num_is_zero(number x);
 
-// sign(a-b)
+// sign(a - b)
 int num_compare(number a, number b);
 
 number num_add(number a, number b);
