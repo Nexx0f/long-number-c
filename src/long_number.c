@@ -329,3 +329,84 @@ number num_mul(number a, number b)
     
     num_return(ERROR_OK, shrink_leading_zeros(res));
 }
+
+// i -> i + by
+void shift(number a, int by)
+{
+    int from = by == 1 ? a.n - 1 : 0;
+    int to = by == 1 ? -1 : (int)a.n;
+    for (int i = from; i != to; i -= by)
+        a.digits[i] = (i - by >= 0 && i - by < (int)a.n) ? a.digits[i - by] : 0;
+}
+
+number num_copy(number a)
+{
+    number b = a;
+    b.digits = malloc(a.n * sizeof(a.digits[0]));
+    memcpy(b.digits, a.digits, b.n * sizeof(b.digits[0]));
+    return b;
+}
+
+void num_div(number a, number b, number* quotient, number* remainder)
+{
+    *quotient = get_null_num();
+    *remainder = get_null_num();
+    
+    if (num_is_null(a) || num_is_null(b))
+        num_return(ERROR_INVALID_ARGUMENT, VOID);
+    
+    if (num_is_zero(b))
+        num_return(ERROR_DIVISION_BY_ZERO, VOID);
+    
+    char res_negative = (a.is_negative ? 1 : 0) ^ (b.is_negative ? 1 : 0);
+    
+    a.is_negative = b.is_negative = 0;
+    
+    number r = num_copy(a);
+    
+    number q = a;
+    q.digits = calloc(q.n, sizeof(q.digits[0]));
+    
+    number bPower;
+    bPower.n = a.n + 1;
+    bPower.digits = calloc(bPower.n, sizeof(bPower.digits[0]));
+    bPower.is_negative = 0;
+    memcpy(bPower.digits, b.digits, sizeof(bPower.digits[0]) * b.n);
+    
+    int nShifts = 0;
+    while (num_compare(r, bPower) >= 0)
+    {
+        shift(bPower, 1);
+        nShifts++;
+        //if (nShifts > 5) abort();
+    }
+    
+    //printf("bPower "); num_write(stdout, bPower); printf("\n");
+    while (nShifts > 0)
+    {
+        shift(bPower, -1);
+        nShifts--;
+        
+        //printf("bPower "); num_write(stdout, bPower); printf("\n");
+        
+        int digit = 0;
+        while (num_compare(r, bPower) >= 0)
+        {
+            number rSub = num_sub(r, bPower);
+            num_free(r);
+            r = rSub;
+            digit++;
+        }
+        
+        q.digits[nShifts] = digit;
+    }
+    
+    q.is_negative = r.is_negative = res_negative;
+    
+    *quotient = shrink_leading_zeros(q);
+    *remainder = shrink_leading_zeros(r);
+    
+    num_free(bPower);
+    
+    num_return(ERROR_OK, VOID);
+}

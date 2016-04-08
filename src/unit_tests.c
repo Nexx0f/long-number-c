@@ -347,13 +347,15 @@ char check_num_op(const char* a, char op, const char* b, const char* c)
     number num_c = num_parse(c);
     assert(long_number_errno == ERROR_OK);
     
-    number op_res;
+    number op_res = get_null_num(), junk = get_null_num();
     
     switch (op)
     {
         case '+': op_res = num_add(num_a, num_b); break;
         case '-': op_res = num_sub(num_a, num_b); break;
         case '*': op_res = num_mul(num_a, num_b); break;
+        case '/': num_div(num_a, num_b, &op_res, &junk); break;
+        case '%': num_div(num_a, num_b, &junk, &op_res); break;
         default: assert(!"invalid op");
     }
     
@@ -368,6 +370,7 @@ char check_num_op(const char* a, char op, const char* b, const char* c)
     num_free(num_b);
     num_free(num_c);
     num_free(op_res);
+    num_free(junk);
     
     return eq;
 }
@@ -376,7 +379,7 @@ void test_ops()
 {
     begin_test_group("arithmetical operations");
     
-    number a = num_parse("1");
+    number a = num_parse("0");
     
     num_add(a, get_null_num());
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
@@ -390,6 +393,14 @@ void test_ops()
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
     num_mul(get_null_num(), a);
     verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    
+    number q, r;
+    num_div(a, get_null_num(), &q, &r);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_div(get_null_num(), a, &q, &r);
+    verify(long_number_errno == ERROR_INVALID_ARGUMENT);
+    num_div(a, a, &q, &r);
+    verify(long_number_errno == ERROR_DIVISION_BY_ZERO);
     
     num_free(a);
     
@@ -409,6 +420,25 @@ void test_ops()
     verify(check_num_op("10", '*', "-10", "-100"));
     verify(check_num_op("10", '*', "0", "0"));
     verify(check_num_op("0", '*', "-10", "0"));
+    
+    verify(check_num_op("10", '/', "2", "5"));
+    verify(check_num_op("5486462982", '/', "-23423", "-234234"));
+    verify(check_num_op("100500", '/', "7", "14357"));
+    verify(check_num_op("1201", '/', "3", "400"));
+    verify(check_num_op("-1000", '/', "-100", "10"));
+    verify(check_num_op("-3", '/', "2", "-1"));
+    verify(check_num_op("3", '/', "-2", "-1"));
+    
+    verify(check_num_op("10", '%', "2", "0"));
+    verify(check_num_op("5486462982", '%', "-23423", "0"));
+    verify(check_num_op("100500", '%', "7", "1"));
+    verify(check_num_op("1201", '%', "3", "1"));
+    verify(check_num_op("-1000", '%', "-100", "0"));
+    verify(check_num_op("-3", '%', "2", "-1"));
+    verify(check_num_op("3", '%', "-2", "-1"));
+    verify(check_num_op("-5", '%', "-3", "2"));
+    verify(check_num_op("-5", '%', "3", "-2"));
+    
     end_test_group();
 }
 
